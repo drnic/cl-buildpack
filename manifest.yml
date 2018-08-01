@@ -1,0 +1,13 @@
+---
+language: cl
+url_to_dependency_map: []
+default_versions:
+- name: sbcl
+  version: 1.4.3
+dependencies:
+- name: sbcl
+  version: 1.4.3
+  cf_stacks: [cflinuxfs2]
+  md5: 1c022d7ac6a8154de9ae09eb9ecfc696
+  uri: https://downloads.sourceforge.net/project/sbcl/sbcl/1.4.3/sbcl-1.4.3-x86-linux-binary.tar.bz2
+exclude_files: []
