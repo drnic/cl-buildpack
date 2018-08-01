@@ -1,0 +1,28 @@
+#!/bin/bash
+set -eu
+
+buildpack=$(dirname $(readlink -f ${BASH_SOURCE%/*}))
+build=$1
+
+run=
+for suffix in lisp lsp cl; do
+  for root in run init app web doit; do
+    if [[ -z $run ]]; then
+      echo "checking for $root.$suffix in $build ..."
+      if [[ -f $root.$suffix ]]; then
+        echo "FOUND $root.suffix in $build; using that for default entrypoint!"
+        run=$root.$suffix
+      fi
+    fi
+  done
+done
+if [[ -z $run ]]; then
+  echo "FAILED to determine default entrypoint."
+  exit 1
+fi
+
+cat <<EOF
+default_process_types:
+  web: sbcl --script $run
+EOF
+exit 0

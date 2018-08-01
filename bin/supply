@@ -1,0 +1,26 @@
+#!/bin/bash
+set -eu
+
+buildpack=$(dirname $(readlink -f ${BASH_SOURCE%/*}))
+build=$1
+cache=$2
+deps=$3
+index=$4
+
+sbcl_version=1.4.3
+
+export HOME=$deps/$index
+
+echo "Configuring SBCL / Common Lisp Runtime"
+curl -sLO https://downloads.sourceforge.net/project/sbcl/sbcl/${sbcl_version}/sbcl-${sbcl_version}-x86-linux-binary.tar.bz2
+tar -xjf sbcl-${sbcl_version}-x86-linux-binary.tar.bz2
+pushd sbcl-${sbcl_version}-x86-linux-binary
+  INSTALL_ROOT=$HOME sh install.sh
+popd
+
+if [[ -f $build/quicklisp.lisp ]]; then
+  echo "Installing additional Quicklisp Library Loads"
+  curl -sL -o $HOME/quicklisp.lisp https://beta.quicklisp.org/quicklisp.lisp
+  PATH=$HOME/bin:$PATH sbcl --load $HOME/quicklisp.lisp --eval '(quicklisp-quickstart:install)'
+  PATH=$HOME/bin:$PATH sbcl --load $HOME/quicklisp.lisp --load $build/quicklisp.lisp --eval '(setup)')
+fi
