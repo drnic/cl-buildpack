@@ -1,0 +1,41 @@
+#!/bin/bash
+set -eu
+if [[ "${CLBP_DEBUG:-no}" != "no" ]]; then
+	set -x
+fi
+
+buildpack=$(dirname $(readlink -f ${BASH_SOURCE%/*}))
+build=$1
+cache=$2
+deps=$3
+index=$4
+
+export HOME=$deps/$index
+
+sbcl_version=1.4.3
+echo
+echo "##       ####  ######  ########"
+echo "##        ##  ##    ## ##     ##"
+echo "##        ##  ##       ##     ##"
+echo "##        ##   ######  ########"
+echo "##        ##        ## ##"
+echo "##        ##  ##    ## ##"
+echo "######## ####  ######  ##"
+echo
+echo "Configuring SBCL / Common Lisp Runtime"
+echo " >> downloading SBCL ${sbcl_version}"
+curl -sLO https://downloads.sourceforge.net/project/sbcl/sbcl/${sbcl_version}/sbcl-${sbcl_version}-x86-linux-binary.tar.bz2
+tar -xjf sbcl-${sbcl_version}-x86-linux-binary.tar.bz2
+
+pushd sbcl-${sbcl_version}-x86-linux >/dev/null 2>&1
+  echo " >> installing SBCL ${sbcl_version}"
+  INSTALL_ROOT=$HOME sh install.sh 2>&1 | sed -e 's/^/    /'
+popd >/dev/null 2>&1
+echo
+
+if [[ -f $build/quicklisp.lisp ]]; then
+  echo "Installing additional Quicklisp Library Loads"
+  curl -sL -o $HOME/quicklisp.lisp https://beta.quicklisp.org/quicklisp.lisp
+  PATH=$HOME/bin:$PATH sbcl --load $HOME/quicklisp.lisp --eval '(quicklisp-quickstart:install)'
+  PATH=$HOME/bin:$PATH sbcl --load $HOME/quicklisp.lisp --load $build/quicklisp.lisp --eval '(setup)'
+fi

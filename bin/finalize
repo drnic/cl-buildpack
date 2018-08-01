@@ -1,0 +1,14 @@
+#!/bin/bash
+set -eu
+if [[ "${CLBP_DEBUG:-no}" != "no" ]]; then
+	set -x
+fi
+
+buildpack=$(dirname $(readlink -f ${BASH_SOURCE%/*}))
+build=$1
+cache=$2
+deps=$3
+index=$4
+
+echo "Finalizing Common Lisp application..."
+exit 0
